@@ -1,0 +1,106 @@
+# Environment files
+.env
+.env.local
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+
+# Hidden files and directories
+.*
+!.gitignore
+!.env.example
+!.github/
+!.github/workflows/
+!.github/workflows/**
+
+# Python cache (additional patterns)
+*/__pycache__/
+**/__pycache__/
+
+# App Engine
+app.yaml
+
+# Google Cloud credentials
+*.json
+gcp-key.json
+service-account.json
+
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/
+
+# Working documents
+CANVAS_INTEGRATION_PLAN.md
+TLDRAW_IMPLEMENTATION.md
+CLAUDE.md
+IMPLEMENTATION_PLAN.md
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# Node installer
+node-installer.msi
+
+# Session workspace folders
+workspace/*
+!workspace/.gitkeep
+generation_output/
+uploaded_references/
+saved_sessions/
+
+# Backup folders
+backup/
+
+# Redis local data
+redis_data/
+dump.rdb
+
+# Test files
+test_*.py
+test_*.js
+test_*.html
+debug_*.py
+
+# Local testing folder (contains test client files)
+local_test/
+
+# Docker and Redis setup files
+docker-compose.yml
+start_redis.py
+REDIS_LOCAL_SETUP.md
+
+# Implementation and backend documentation
+BACKEND_*.md
+TEST_REPORT.md
+implementation_plan.md
+*_IMPLEMENTATION.md
+*_PLAN.md
+
+# Backend runner
+run_backend.py
+
+# Hackathon submission files
+submission/
+GEMINI_WRITEUP.*
+PROJECT_HISTORY.md
+
+# Windows artifacts
+nul

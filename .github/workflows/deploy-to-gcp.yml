@@ -1,0 +1,139 @@
+name: Deploy Agent Core to Cloud Run
+
+on:
+  push:
+    branches:
+      - main  
+      - test
+
+jobs:
+  deploy:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    ### Authenticate Google Cloud
+    - name: Authenticate to Google Cloud
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+
+    ### Setup gcloud CLI
+    - name: Set up Cloud SDK
+      uses: 'google-github-actions/setup-gcloud@v2'
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    ### Deploy to Cloud Run based on branch
+    - name: Deploy to Cloud Run (Test)
+      if: github.ref == 'refs/heads/test'
+      run: |
+        # Create env vars file to handle JSON credentials properly
+        cat > env-vars.yaml << EOF
+        DEPLOYMENT_ENV: DEV
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        GCP_PROJECT_NUMBER: ${{ secrets.GCP_PROJECT_NUMBER }}
+        GOOGLE_CLOUD_REGION: us-central1
+        SESSION_BUCKET_NAME: ${{ secrets.SESSION_BUCKET_NAME }}
+        REDIS_URL_TEST: ${{ secrets.REDIS_URL_TEST }}
+        ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        credentials_dict: '${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}'
+        EOF
+
+        echo "Starting Cloud Run deployment for TEST environment..."
+        
+        # Deploy with optimized cost-saving configuration
+        gcloud run deploy agent-core-test \
+          --source . \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated \
+          --port 8080 \
+          --memory 4Gi \
+          --cpu 2 \
+          --min-instances 0 \
+          --max-instances 3 \
+          --concurrency 20 \
+          --timeout 1800 \
+          --execution-environment gen2 \
+          --session-affinity \
+          --env-vars-file env-vars.yaml \
+          --verbosity=info 2>&1 | tee deploy.log
+        
+        # Check if deployment succeeded
+        if [ ${PIPESTATUS[0]} -ne 0 ]; then
+          echo "Deployment failed! Checking Cloud Build logs..."
+          # Get the latest build ID and show logs
+          BUILD_ID=$(gcloud builds list --limit=1 --format="value(id)")
+          echo "Build ID: $BUILD_ID"
+          echo "Fetching build logs..."
+          gcloud builds log $BUILD_ID || true
+          exit 1
+        fi
+        
+        echo "Deployment command completed"
+
+    - name: Deploy to Cloud Run (Production)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Create env vars file to handle JSON credentials properly
+        cat > env-vars.yaml << EOF
+        DEPLOYMENT_ENV: PROD
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        GCP_PROJECT_NUMBER: ${{ secrets.GCP_PROJECT_NUMBER }}
+        GOOGLE_CLOUD_REGION: us-central1
+        SESSION_BUCKET_NAME: ${{ secrets.SESSION_BUCKET_NAME }}
+        REDIS_URL_TEST: ${{ secrets.REDIS_URL_TEST }}
+        ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        credentials_dict: '${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}'
+        EOF
+
+        echo "Starting Cloud Run deployment for PRODUCTION environment..."
+        
+        # Deploy with optimized cost-saving configuration
+        gcloud run deploy agent-core-prod \
+          --source . \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated \
+          --port 8080 \
+          --memory 4Gi \
+          --cpu 2 \
+          --min-instances 0 \
+          --max-instances 3 \
+          --concurrency 20 \
+          --timeout 1800 \
+          --execution-environment gen2 \
+          --session-affinity \
+          --env-vars-file env-vars.yaml \
+          --verbosity=info 2>&1 | tee deploy.log
+        
+        # Check if deployment succeeded
+        if [ ${PIPESTATUS[0]} -ne 0 ]; then
+          echo "Deployment failed! Checking Cloud Build logs..."
+          # Get the latest build ID and show logs
+          BUILD_ID=$(gcloud builds list --limit=1 --format="value(id)")
+          echo "Build ID: $BUILD_ID"
+          echo "Fetching build logs..."
+          gcloud builds log $BUILD_ID || true
+          exit 1
+        fi
+        
+        echo "Deployment command completed"
+
+    ### Get deployment URL
+    - name: Get Service URL (Test)
+      if: github.ref == 'refs/heads/test'
+      run: |
+        SERVICE_URL=$(gcloud run services describe agent-core-test --region=us-central1 --format='value(status.url)')
+        echo "Successfully deployed to TEST: $SERVICE_URL"
+
+    - name: Get Service URL (Production)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        SERVICE_URL=$(gcloud run services describe agent-core-prod --region=us-central1 --format='value(status.url)')
+        echo "Successfully deployed to PRODUCTION: $SERVICE_URL"

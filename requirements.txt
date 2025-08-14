@@ -1,0 +1,49 @@
+# Core Dependencies
+langgraph==0.6.3
+langchain==0.3.27
+langchain-core==0.3.72
+langchain-community==0.3.27
+langchain-google-vertexai==2.0.28
+langchain-text-splitters==0.3.9
+langgraph-checkpoint==2.1.1
+langgraph-prebuilt==0.6.3
+python-dotenv>=1.0.1
+google-cloud-aiplatform==1.106.0
+google-cloud-core==2.4.1
+google-cloud-storage==2.19.0
+google-genai==1.52.0
+# Backend Service Dependencies
+fastapi==0.117.1
+uvicorn[standard]==0.37.0
+websockets==14.2
+redis[hiredis]==6.4.0
+pandas==2.2.3
+
+# Utilities
+requests>=2.32.4
+httpx>=0.28.1
+fastmcp>=2.11.3
+pydantic>=2.4.0
+mcp>=1.13.0
+pydantic-core>=2.33.2
+
+# Video Editing
+# Note: Requires FFmpeg executable installed separately
+# Windows: winget install ffmpeg or download from https://ffmpeg.org
+ffmpeg-python==0.2.0
+PyJWT==2.10.1
+
+# Image Processing
+Pillow>=10.4.0
+
+# File Upload
+werkzeug>=3.0.0
+
+# Document Processing
+python-docx>=1.2.0
+python-pptx>=0.6.21
+
+# Audio Analysis
+librosa>=0.11.0
+scipy>=1.11.0
+soundfile>=0.12.1
